@@ -1,25 +1,25 @@
 const { SerialPort, ReadlineParser } = require("serialport");
+const { getDutyOfficer } = require("./dutyOfficer");
 
 const parser = new ReadlineParser();
 
-let isSimReady = false;
+// let isSimReady = false;
 
-let port;
+const port = new SerialPort(
+  {
+    path: "/dev/ttyUSB2",
+    baudRate: 115200,
+    autoOpen: false,
+  },
+  (err) => {
+    console.log("Init");
+    if (err) console.log("Error", err, err.message);
+  }
+);
+
+port.pipe(parser);
 
 function startSerialPort(port) {
-  port = new SerialPort(
-    {
-      path: "/dev/ttyUSB2",
-      baudRate: 115200,
-    },
-    (err) => {
-      console.log("Init");
-      if (err) console.log("Error", err, err.message);
-    }
-  );
-
-  port.pipe(parser);
-
   parser.on("data", (data) => {
     console.log("data:", data);
     if (data.includes("+CPIN: READY")) {
@@ -49,25 +49,37 @@ function unlockSIM() {
   port.write(`AT+CPIN="${PIN}"\r`);
 }
 
-function getDutyOfficer(date) {
-  const shiftWorkers = [
-    { name: "Glen", phoneNumber: "+61409991553" },
-    { name: "Lukas", phoneNumber: "+61409991553" },
-    { name: "Dan", phoneNumber: "+61409991553" },
-    { name: "Peter", phoneNumber: "+61409991553" },
-  ];
-  const startDate = new Date("2024-02-10"); // Start date Saturday
+function sendCommand(command) {
+  return new Promise((resolve, reject) => {
+    //open port
+    port.open(reject);
 
-  // Calculate the number of weeks passed since the start date
-  const timeDiff = Math.abs(date.getTime() - startDate.getTime());
-  const weeksPassed = Math.ceil(timeDiff / (1000 * 3600 * 24 * 7));
+    //on open, send command
+    port.on("open", () => {
+      port.write(command);
+    });
 
-  // Calculate the index of the shift worker based on the number of weeks passed
-  const workerIndex = (weeksPassed - 1) % shiftWorkers.length;
+    parser.on("data", (data) => {
+      resolve(data);
 
-  return shiftWorkers[workerIndex];
+      port.close();
+    });
+    // wait for response,
+  });
 }
 
-console.log(getDutyOfficer(new Date()));
+//testing
+setTimeout(async () => {
+  console.log("sending async command!");
 
-startSerialPort();
+  try {
+    const response = await sendCommand("AT+CPIN?\r");
+    console.log("response", response);
+  } catch (error) {
+    console.log("crap!", error);
+  }
+}, 1000);
+
+// console.log(getDutyOfficer(new Date()));
+
+// startSerialPort();
