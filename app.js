@@ -16,6 +16,7 @@ const port = new SerialPort(
     if (err) console.log("Error", err, err.message);
   }
 );
+console.log("port", port);
 
 port.pipe(parser);
 
@@ -75,19 +76,21 @@ function sendCommand(command) {
 }
 
 //testing
-// setTimeout(async () => {
-//   console.log("sending async command!");
+async function test() {
+  console.log("sending async command!");
 
-//   try {
-//     const response = await sendCommand("AT+CPIN?\r");
-//     console.log("response", response);
-//     port.close();
-//   } catch (error) {
-//     console.log("crap!", error);
-//   }
-// }, 1000);
+  try {
+    const response = await sendCommand("AT+CPIN?\r");
+    console.log("response", response);
+  } catch (error) {
+    console.log("crap!", error);
+  } finally {
+    console.log("close port!");
+    port.close();
+  }
+}
 
-console.log("run and quit");
+test();
 
 // console.log(getDutyOfficer(new Date()));
 
