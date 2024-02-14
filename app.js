@@ -54,7 +54,7 @@ function sendCommand(command) {
       if (error) {
         reject(error);
       }
-      // port.pipe(parser);
+      port.pipe(parser);
       port.write(command);
     });
 
