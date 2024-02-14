@@ -60,9 +60,10 @@ function sendCommand(command) {
     });
 
     parser.on("data", (data) => {
+      console.log("...waiting for delicious data", data);
       resolve(data);
 
-      port.close();
+      // port.close();
     });
     // wait for response,
   });
