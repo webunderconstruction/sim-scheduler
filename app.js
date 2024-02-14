@@ -75,17 +75,19 @@ function sendCommand(command) {
 }
 
 //testing
-setTimeout(async () => {
-  console.log("sending async command!");
+// setTimeout(async () => {
+//   console.log("sending async command!");
 
-  try {
-    const response = await sendCommand("AT+CPIN?\r");
-    console.log("response", response);
-    port.close();
-  } catch (error) {
-    console.log("crap!", error);
-  }
-}, 1000);
+//   try {
+//     const response = await sendCommand("AT+CPIN?\r");
+//     console.log("response", response);
+//     port.close();
+//   } catch (error) {
+//     console.log("crap!", error);
+//   }
+// }, 1000);
+
+console.log("run and quit");
 
 // console.log(getDutyOfficer(new Date()));
 
