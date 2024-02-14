@@ -60,9 +60,9 @@ function sendCommand(command) {
     });
 
     parser.on("data", (data) => {
-      console.log("...waiting for delicious data", data);
+      console.log("...waiting for delicious data", data.length, data);
       // send if first thing that came back
-      if (data) {
+      if (data.length > 1) {
         resolve(data);
       }
 
