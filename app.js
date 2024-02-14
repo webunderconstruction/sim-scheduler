@@ -62,6 +62,7 @@ function sendCommand(command) {
       console.log("...waiting for delicious data", data.length, data);
       // send if first thing that comes back
       if (data.length > 1) {
+        port.unpipe(parser);
         resolve(data);
       }
 
