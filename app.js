@@ -64,7 +64,6 @@ function sendCommand(command) {
       // send if first thing that comes back
       if (data.length > 1) {
         resolve(data);
-        port.close();
       }
 
       // if after 60 seconds we don't get any data more than 1 char, we reject
@@ -82,6 +81,7 @@ setTimeout(async () => {
   try {
     const response = await sendCommand("AT+CPIN?\r");
     console.log("response", response);
+    port.close();
   } catch (error) {
     console.log("crap!", error);
   }
