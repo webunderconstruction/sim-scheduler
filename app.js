@@ -48,7 +48,13 @@ function unlockSIM() {
 }
 
 function sendCommand(command) {
+  const dataStream = [];
   return new Promise((resolve, reject) => {
+    // if after 60 seconds we don't get any data more than 1 char, we reject
+    const timer = setTimeout(() => {
+      reject("Timeout");
+    }, 60000);
+
     //open port
     port.open((error) => {
       if (error) {
@@ -60,16 +66,15 @@ function sendCommand(command) {
 
     parser.on("data", (data) => {
       console.log("...waiting for delicious data", data.length, data);
+      if (data.length > 1) {
+        dataStream.push(data);
+      }
       // send if first thing that comes back
       if (data.includes("OK")) {
         port.unpipe(parser);
-        resolve(data);
+        clearTimeout(timer);
+        resolve(dataStream[0]);
       }
-
-      // if after 60 seconds we don't get any data more than 1 char, we reject
-      setTimeout(() => {
-        reject("Timeout");
-      }, 60000);
     });
   });
 }
