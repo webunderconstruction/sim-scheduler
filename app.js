@@ -52,10 +52,10 @@ function unlockSIM() {
 function sendCommand(command) {
   return new Promise((resolve, reject) => {
     //open port
-    port.open(reject);
-
-    //on open, send command
-    port.on("open", () => {
+    port.open((error) => {
+      if (error) {
+        reject(error);
+      }
       port.write(command);
     });
 
