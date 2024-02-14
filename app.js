@@ -73,6 +73,8 @@ function sendCommand(command) {
       if (data.includes("OK")) {
         port.unpipe(parser);
         clearTimeout(timer);
+        console.log("close port!");
+        port.close();
         resolve(dataStream[0]);
       }
     });
@@ -89,8 +91,6 @@ async function test() {
   } catch (error) {
     console.log("crap!", error);
   } finally {
-    console.log("close port!");
-    port.close();
   }
 }
 
