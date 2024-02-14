@@ -11,6 +11,7 @@
   "author": "Matt Todd",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.4.4",
     "pm2": "^5.3.1",
     "serialport": "^12.0.0"
   }

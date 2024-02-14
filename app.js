@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const { SerialPort, ReadlineParser } = require("serialport");
 const { getDutyOfficer } = require("./dutyOfficer");
 
@@ -61,7 +63,7 @@ function sendCommand(command) {
         reject(error);
       }
       port.pipe(parser);
-      port.write(command);
+      port.write(`${command}\r`);
     });
 
     parser.on("data", (data) => {
@@ -86,11 +88,15 @@ async function test() {
   console.log("sending async command!");
 
   try {
-    const response = await sendCommand("AT+CPIN?\r");
+    const response = await sendCommand("AT+CPIN?");
     console.log("response", response);
+
+    if (response.includes("SIM PIN")) {
+      const unlockSIM = await sendCommand(`AT+CPIN=${process.env.SIM_PIN}`);
+      console.log("unlockSIM", unlockSIM);
+    }
   } catch (error) {
     console.log("crap!", error);
-  } finally {
   }
 }
 
