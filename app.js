@@ -58,10 +58,10 @@ function sendCommand(command) {
       port.write(command);
     });
 
-    parser.once("data", (data) => {
+    parser.on("data", (data) => {
       console.log("...waiting for delicious data", data.length, data);
       // send if first thing that comes back
-      if (data.length > 1) {
+      if (data.includes("OK")) {
         port.unpipe(parser);
         resolve(data);
       }
