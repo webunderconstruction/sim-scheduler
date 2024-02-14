@@ -61,7 +61,10 @@ function sendCommand(command) {
 
     parser.on("data", (data) => {
       console.log("...waiting for delicious data", data);
-      resolve(data);
+      // send if first thing that came back
+      if (data) {
+        resolve(data);
+      }
 
       // port.close();
     });
