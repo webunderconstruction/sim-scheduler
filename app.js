@@ -16,7 +16,6 @@ const port = new SerialPort(
     if (err) console.log("Error", err, err.message);
   }
 );
-console.log("port", port);
 
 function startSerialPort(port) {
   parser.on("data", (data) => {
@@ -55,7 +54,7 @@ function sendCommand(command) {
       if (error) {
         reject(error);
       }
-      port.pipe(parser);
+      // port.pipe(parser);
       port.write(command);
     });
 
