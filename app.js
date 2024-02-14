@@ -61,14 +61,17 @@ function sendCommand(command) {
 
     parser.on("data", (data) => {
       console.log("...waiting for delicious data", data.length, data);
-      // send if first thing that came back
+      // send if first thing that comes back
       if (data.length > 1) {
         resolve(data);
+        port.close();
       }
 
-      // port.close();
+      // if after 60 seconds we don't get any data more than 1 char, we reject
+      setTimeout(() => {
+        reject("Timeout");
+      }, 60000);
     });
-    // wait for response,
   });
 }
 
