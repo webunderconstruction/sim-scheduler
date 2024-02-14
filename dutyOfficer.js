@@ -1,4 +1,4 @@
-export function getDutyOfficer(date) {
+function getDutyOfficer(date) {
   const shiftWorkers = [
     { name: "Glen", phoneNumber: "+61409991553" },
     { name: "Lukas", phoneNumber: "+61409991553" },
@@ -16,3 +16,5 @@ export function getDutyOfficer(date) {
 
   return shiftWorkers[workerIndex];
 }
+
+module.exports = { getDutyOfficer };
