@@ -5,8 +5,6 @@ const { getDutyOfficer } = require("./dutyOfficer");
 
 const parser = new ReadlineParser();
 
-// let isSimReady = false;
-
 const port = new SerialPort(
   {
     path: "/dev/ttyUSB2",
@@ -37,16 +35,6 @@ function startSerialPort(port) {
     // check if SIM is ready
     port.write("AT+CPIN?\r");
   });
-}
-
-function setCallForward(phoneNumber) {
-  // +61409991553
-  port.write(`AT+CCFC=0,3,"${phoneNumber}"\r`);
-}
-
-function unlockSIM() {
-  const PIN = process.env.SIM_PIN;
-  port.write(`AT+CPIN="${PIN}"\r`);
 }
 
 function sendCommand(command) {
@@ -83,6 +71,9 @@ function sendCommand(command) {
   });
 }
 
+const { name, phoneNumber } = getDutyOfficer(new Date());
+console.log("LT DTO", name, phoneNumber);
+
 //testing
 async function test() {
   console.log("sending async command!");
@@ -95,13 +86,15 @@ async function test() {
       const unlockSIM = await sendCommand(`AT+CPIN=${process.env.SIM_PIN}`);
       console.log("unlockSIM", unlockSIM);
     }
+
+    // set Duty Officer
+    const setDTOResponse = await sendCommand(`AT+CCFC=0,3,"${phoneNumber}"\r`);
+    console.log("setDTOResponse", setDTOResponse);
   } catch (error) {
     console.log("crap!", error);
   }
 }
 
 test();
-
-// console.log(getDutyOfficer(new Date()));
 
 // startSerialPort();

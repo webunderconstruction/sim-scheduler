@@ -1,11 +1,7 @@
+const shiftWorkers = require("./brigadeOfficers.json");
+
 function getDutyOfficer(date) {
-  const shiftWorkers = [
-    { name: "Glen", phoneNumber: "+61409991553" },
-    { name: "Lukas", phoneNumber: "+61409991553" },
-    { name: "Dan", phoneNumber: "+61409991553" },
-    { name: "Peter", phoneNumber: "+61409991553" },
-  ];
-  const startDate = new Date("2024-02-10"); // Start date Saturday
+  const startDate = new Date("2024-02-17"); // Start date Saturday
 
   // Calculate the number of weeks passed since the start date
   const timeDiff = Math.abs(date.getTime() - startDate.getTime());
