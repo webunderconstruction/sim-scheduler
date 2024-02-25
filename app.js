@@ -64,7 +64,12 @@ function sendCommand(command) {
         port.unpipe(parser);
         clearTimeout(timer);
         console.log("close port!");
-        port.close();
+        try {
+          port.close();
+        } catch (error) {
+          console.log("error trying to close port", error);
+        }
+
         resolve(dataStream[0]);
       }
     });
@@ -74,22 +79,50 @@ function sendCommand(command) {
 const { name, phoneNumber } = getDutyOfficer(new Date());
 console.log("LT DTO", name, phoneNumber);
 
+// check SIM unlocked
+
+// if not, unlock the SIM
+
+// get current LT DO
+
+// if current LT DO != who it should be, set it
+
+// otherwise exit
+
+async function isSimLocked() {
+  const response = await sendCommand("AT+CPIN?");
+  return response.includes("SIM PIN");
+}
+
+async function getCurrentRedirectNumber() {
+  const response = await sendCommand("AT+CCFC=0,2");
+  // use regex to find phone number between quotes and return that string, second element of the array
+  return response.match(/"(.*?)"/)[1];
+}
+
 //testing
 async function test() {
   console.log("sending async command!");
 
   try {
-    const response = await sendCommand("AT+CPIN?");
-    console.log("response", response);
-
-    if (response.includes("SIM PIN")) {
+    // check if SIM is locked
+    if (isSimLocked()) {
       const unlockSIM = await sendCommand(`AT+CPIN=${process.env.SIM_PIN}`);
       console.log("unlockSIM", unlockSIM);
     }
 
-    // set Duty Officer
-    const setDTOResponse = await sendCommand(`AT+CCFC=0,3,"${phoneNumber}"\r`);
-    console.log("setDTOResponse", setDTOResponse);
+    console.log("SIM not locked, continuing...");
+
+    // check if current phone LT DO matches this week's LT DO
+    const currentPh = await getCurrentRedirectNumber();
+    console.log("current phone LT DO", currentPh);
+
+    if (currentPh !== phoneNumber) {
+      const setDTOResponse = await sendCommand(
+        `AT+CCFC=0,3,"${phoneNumber}"\r`
+      );
+      console.log("setDTOResponse", setDTOResponse);
+    }
   } catch (error) {
     console.log("crap!", error);
   }
