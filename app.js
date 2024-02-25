@@ -101,9 +101,9 @@ async function getCurrentRedirectNumber() {
 }
 
 async function unitTest() {
-  const isSimLocked = await isSimLocked();
+  const response = await isSimLocked();
 
-  console.log("is sim locked?", isSimLocked);
+  console.log("is sim locked?", response);
 }
 
 unitTest();
