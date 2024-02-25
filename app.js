@@ -100,14 +100,6 @@ async function getCurrentRedirectNumber() {
   return response.match(/"(.*?)"/)[1];
 }
 
-async function unitTest() {
-  const response = await isSimLocked();
-
-  console.log("is sim locked?", response);
-}
-
-unitTest();
-
 
 //testing
 async function test() {
@@ -115,7 +107,7 @@ async function test() {
 
   try {
     // check if SIM is locked
-    if (isSimLocked()) {
+    if (await isSimLocked()) {
       const unlockSIM = await sendCommand(`AT+CPIN=${process.env.SIM_PIN}`);
       console.log("unlockSIM", unlockSIM);
     }
@@ -137,6 +129,6 @@ async function test() {
   }
 }
 
-// test();
+test();
 
 // startSerialPort();
