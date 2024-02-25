@@ -3,8 +3,6 @@ require("dotenv").config();
 const { SerialPort, ReadlineParser } = require("serialport");
 const { getDutyOfficer } = require("./dutyOfficer");
 
-const parser = new ReadlineParser();
-
 const port = new SerialPort(
   {
     path: "/dev/ttyUSB2",
@@ -17,42 +15,35 @@ const port = new SerialPort(
   }
 );
 
-function startSerialPort(port) {
-  parser.on("data", (data) => {
-    console.log("data:", data);
-    if (data.includes("+CPIN: READY")) {
-      console.log("SIM card ready");
-      isSimReady = true;
-    }
+// function startSerialPort(port) {
+//   parser.on("data", (data) => {
+//     console.log("data:", data);
+//     if (data.includes("+CPIN: READY")) {
+//       console.log("SIM card ready");
+//       isSimReady = true;
+//     }
 
-    if (data.includes("+CPIN: SIM PIN")) {
-      console.log("SIM card no ready, enter PIN");
-    }
-  });
-  parser.on("error", console.log);
+//     if (data.includes("+CPIN: SIM PIN")) {
+//       console.log("SIM card no ready, enter PIN");
+//     }
+//   });
+//   parser.on("error", console.log);
 
-  port.on("open", (err) => {
-    // check if SIM is ready
-    port.write("AT+CPIN?\r");
-  });
-}
+//   port.on("open", (err) => {
+//     // check if SIM is ready
+//     port.write("AT+CPIN?\r");
+//   });
+// }
 
 function sendCommand(command) {
+  const parser = new ReadlineParser();
   const dataStream = [];
+
   return new Promise((resolve, reject) => {
     // if after 60 seconds we don't get any data more than 1 char, we reject
     const timer = setTimeout(() => {
       reject("Timeout");
     }, 60000);
-
-    //open port
-    port.open((error) => {
-      if (error) {
-        reject(error);
-      }
-      port.pipe(parser);
-      port.write(`${command}\r`);
-    });
 
     parser.on("data", (data) => {
       console.log("...waiting for delicious data", data.length, data);
@@ -72,6 +63,15 @@ function sendCommand(command) {
 
         resolve(dataStream[0]);
       }
+    });
+
+    //open port
+    port.open((error) => {
+      if (error) {
+        reject(error);
+      }
+      port.pipe(parser);
+      port.write(`${command}\r`);
     });
   });
 }
@@ -99,6 +99,15 @@ async function getCurrentRedirectNumber() {
   // use regex to find phone number between quotes and return that string, second element of the array
   return response.match(/"(.*?)"/)[1];
 }
+
+async function unitTest() {
+  const isSimLocked = await isSimLocked();
+
+  console.log("is sim locked?", isSimLocked);
+}
+
+unitTest();
+
 
 //testing
 async function test() {
@@ -128,6 +137,6 @@ async function test() {
   }
 }
 
-test();
+// test();
 
 // startSerialPort();
