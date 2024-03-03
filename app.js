@@ -35,13 +35,14 @@ const port = new SerialPort(
 //   });
 // }
 
-function sendCommand(command) {
+function sendCommand(command, returnCheckString = 'OK') {
   const parser = new ReadlineParser();
   const dataStream = [];
 
   return new Promise((resolve, reject) => {
     // if after 60 seconds we don't get any data more than 1 char, we reject
     const timer = setTimeout(() => {
+      port.unpipe(parser);
       reject("Timeout");
     }, 60000);
 
@@ -51,7 +52,7 @@ function sendCommand(command) {
         dataStream.push(data);
       }
       // send if first thing that comes back
-      if (data.includes("OK")) {
+      if (data.includes(returnCheckString)) {
         port.unpipe(parser);
         clearTimeout(timer);
         console.log("close port!");
@@ -68,6 +69,7 @@ function sendCommand(command) {
     //open port
     port.open((error) => {
       if (error) {
+      
         reject(error);
       }
       port.pipe(parser);
@@ -100,7 +102,6 @@ async function getCurrentRedirectNumber() {
   return response.match(/"(.*?)"/)[1];
 }
 
-
 //testing
 async function test() {
   console.log("sending async command!");
@@ -108,8 +109,9 @@ async function test() {
   try {
     // check if SIM is locked
     if (await isSimLocked()) {
-      const unlockSIM = await sendCommand(`AT+CPIN=${process.env.SIM_PIN}`);
-      console.log("unlockSIM", unlockSIM);
+      console.log('SIM is locked, sending unlock command...');
+      const unlockSIM = await sendCommand(`AT+CPIN=${process.env.SIM_PIN}`, '+CPIN: READY');
+      console.log("unlockSIM status", unlockSIM);
     }
 
     console.log("SIM not locked, continuing...");
