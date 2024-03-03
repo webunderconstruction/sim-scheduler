@@ -98,8 +98,9 @@ async function isSimLocked() {
 
 async function getCurrentRedirectNumber() {
   const response = await sendCommand("AT+CCFC=0,2");
+  console.log("getCurrentRedirectNumber", response);
   // use regex to find phone number between quotes and return that string, second element of the array
-  return response.match(/"(.*?)"/)[1];
+  return response ? response.match(/"(.*?)"/)[1] : '';
 }
 
 //testing
