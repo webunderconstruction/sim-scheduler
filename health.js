@@ -92,7 +92,12 @@ async function healthCheck() {
   try {
 
     console.log('Sending health check command');
-      const healthResponse = await sendCommand(`AT+CMGS="${process.env.HEALTH_CHECK}"\r\n health test \r\n ^z`);
+    // set phone number
+      await sendCommand(`AT+CMGS="${process.env.HEALTH_CHECK}"`);
+      // set text
+      await sendCommand('HealthCheck');
+      //send
+      const healthResponse = await sendCommand('^z')
       console.log("Health response", healthResponse);
     
   } catch (error) {
