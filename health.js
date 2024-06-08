@@ -100,7 +100,7 @@ async function healthCheck() {
     setTimeout(function(){
       port.write('AT+CMGF=1\r')
       setTimeout(function(){
-        port.write(`AT+CMGS=\"${rocess.env.HEALTH_CHECK}\"\r`)
+        port.write(`AT+CMGS=\"${process.env.HEALTH_CHECK}\"\r`)
           setTimeout(function(){
             port.write('HealthCheck\r')
               setTimeout(function(){
