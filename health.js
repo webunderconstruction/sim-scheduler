@@ -89,25 +89,40 @@ function sendCommand(command, returnCheckString = 'OK', endOfLine = '\r') {
 // }
 
 async function healthCheck() {
-  try {
 
-    console.log('Sending health check command');
-    // set sms text mode
-    await sendCommand('AT+CMGF=1');
-    // set phone number
-    const healthResponse = await sendCommand(`AT+CMGS="${process.env.HEALTH_CHECK}"\r\nHealthCheck\0x1a`, 'OK', '');
-    // set text
-    // await sendCommand('HealthCheck', '', '\r\n');
-    // // send sms
-    // await sendCommand('\x1A');
-    // const healthResponse = await sendCommand('^z')
-    console.log("Health response", healthResponse);
+  port.open((error) => {
+    if (error) {
     
-  } catch (error) {
+      console.log('Error', error);
+    }
+    port.write('AT+CMGF=1\r'); // set SMS text mode
+    port.write(`AT+CMGS="${process.env.HEALTH_CHECK}"\r`); // send sms message
+    port.write('HealthCheck\r\n');
+    port.write('\x1A');
+    port.write('^z'); 
+  });
 
-    console.log("crap!", error);
+  // try {
+
+  //   console.log('Sending health check command');
+
+
+  //   // set sms text mode
+  //   await sendCommand('AT+CMGF=1');
+  //   // set phone number
+  //   const healthResponse = await sendCommand(`AT+CMGS="${process.env.HEALTH_CHECK}"\r\nHealthCheck\0x1a`, 'OK', '');
+  //   // set text
+  //   // await sendCommand('HealthCheck', '', '\r\n');
+  //   // // send sms
+  //   // await sendCommand('\x1A');
+  //   // const healthResponse = await sendCommand('^z')
+  //   console.log("Health response", healthResponse);
     
-  }
+  // } catch (error) {
+
+  //   console.log("crap!", error);
+    
+  // }
 }
 console.log('Health check ph', process.env.HEALTH_CHECK)
 healthCheck()
