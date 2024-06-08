@@ -104,13 +104,15 @@ async function healthCheck() {
           setTimeout(function(){
             port.write('HealthCheck')
               setTimeout(function(){
-                port.write('\x1A')
+                port.write('\x1A');
+                console.log('HealthCheck sent');
+                port.close();
               }, 100);
           }, 100);
        }, 100);
    }, 100);
 
-    console.log('HealthCheck sent');
+    
   });
 
   // try {
