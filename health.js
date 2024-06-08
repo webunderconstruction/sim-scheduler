@@ -95,12 +95,12 @@ async function healthCheck() {
     // set sms text mode
     await sendCommand('AT+CMGF=1');
     // set phone number
-    await sendCommand(`AT+CMGS="${process.env.HEALTH_CHECK}"`, 'OK', '\r\n');
+    const healthResponse = await sendCommand(`AT+CMGS="${process.env.HEALTH_CHECK}"\r\n HealthCheck \x1A ^z`);
     // set text
-    await sendCommand('HealthCheck', '', '\r\n');
-    // send sms
-    await sendCommand('\x1A');
-    const healthResponse = await sendCommand('^z')
+    // await sendCommand('HealthCheck', '', '\r\n');
+    // // send sms
+    // await sendCommand('\x1A');
+    // const healthResponse = await sendCommand('^z')
     console.log("Health response", healthResponse);
     
   } catch (error) {
