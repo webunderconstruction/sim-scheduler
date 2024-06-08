@@ -95,7 +95,7 @@ async function healthCheck() {
     // set sms text mode
     await sendCommand('AT+CMGF=1');
     // set phone number
-    const healthResponse = await sendCommand(`AT+CMGS="${process.env.HEALTH_CHECK}"\r\n HealthCheck \x1A ^z`);
+    const healthResponse = await sendCommand(`AT+CMGS="${process.env.HEALTH_CHECK}"\r\nHealthCheck\0x1a`, 'OK', '');
     // set text
     // await sendCommand('HealthCheck', '', '\r\n');
     // // send sms
@@ -109,7 +109,7 @@ async function healthCheck() {
     
   }
 }
-
+console.log('Health check ph', process.env.HEALTH_CHECK)
 healthCheck()
 
 //test();
