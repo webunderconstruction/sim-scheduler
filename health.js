@@ -135,8 +135,15 @@ async function healthCheck() {
     
   // }
 }
-console.log('Health check ph', process.env.HEALTH_CHECK)
-healthCheck()
+
+// 5mins
+const interval = 1000 * 60 * 5;
+
+setInterval(() => {
+  console.log('Health check ph', process.env.HEALTH_CHECK)
+  healthCheck() 
+}, interval);
+
 
 //test();
 
