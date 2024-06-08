@@ -98,8 +98,10 @@ async function healthCheck() {
     port.write('AT+CMGF=1\r'); // set SMS text mode
     port.write(`AT+CMGS="${process.env.HEALTH_CHECK}"\r`); // send sms message
     port.write('HealthCheck\r\n');
-    port.write('\x1A');
+    port.write('0x1a');
     port.write('^z'); 
+
+    console.log('HealthCheck sent');
   });
 
   // try {
