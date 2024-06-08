@@ -15,7 +15,7 @@ const port = new SerialPort(
   }
 );
 
-function sendCommand(command, returnCheckString = 'OK') {
+function sendCommand(command, returnCheckString = 'OK', endOfLine = '\r') {
   const parser = new ReadlineParser();
   const dataStream = [];
 
@@ -53,7 +53,7 @@ function sendCommand(command, returnCheckString = 'OK') {
         reject(error);
       }
       port.pipe(parser);
-      port.write(`${command}\r`);
+      port.write(`${command}${endOfLine}`);
     });
   });
 }
@@ -95,9 +95,9 @@ async function healthCheck() {
     // set sms text mode
     await sendCommand('AT+CMGF=1');
     // set phone number
-    await sendCommand(`AT+CMGS="${process.env.HEALTH_CHECK}"`);
+    await sendCommand(`AT+CMGS="${process.env.HEALTH_CHECK}"`, 'OK', '\r\n');
     // set text
-    await sendCommand('HealthCheck');
+    await sendCommand('HealthCheck', '', '\r\n');
     // send sms
     await sendCommand('\x1A');
     const healthResponse = await sendCommand('^z')
