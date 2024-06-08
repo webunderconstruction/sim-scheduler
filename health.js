@@ -95,11 +95,21 @@ async function healthCheck() {
     
       console.log('Error', error);
     }
-    port.write('AT+CMGF=1\r'); // set SMS text mode
-    port.write(`AT+CMGS="${process.env.HEALTH_CHECK}"\r`); // send sms message
-    port.write('HealthCheck\r\n');
-    port.write(new Buffer[0x1a]);
-    port.write('\r');
+
+
+    setTimeout(function(){
+      port.write('AT+CMGF=1\r')
+      setTimeout(function(){
+        port.write(`AT+CMGS=\"${rocess.env.HEALTH_CHECK}\"\r`)
+          setTimeout(function(){
+            port.write('HealthCheck\r')
+              setTimeout(function(){
+                port.write('\x1A')
+              }, 100);
+          }, 100);
+       }, 100);
+   }, 100);
+
     console.log('HealthCheck sent');
   });
 
