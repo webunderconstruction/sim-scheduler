@@ -3,7 +3,17 @@ require("dotenv").config();
 const { SerialPort, ReadlineParser } = require("serialport");
 
 
-
+const port = new SerialPort(
+  {
+    path: "/dev/ttyUSB2",
+    baudRate: 115200,
+    autoOpen: false,
+  },
+  (err) => {
+    console.log("Init");
+    if (err) console.log("Error", err, err.message);
+  }
+);
 
 function sendCommand(command, returnCheckString = 'OK', endOfLine = '\r') {
   const parser = new ReadlineParser();
@@ -51,17 +61,12 @@ function sendCommand(command, returnCheckString = 'OK', endOfLine = '\r') {
 
 async function healthCheck() {
 
-  const port = new SerialPort(
-    {
-      path: "/dev/ttyUSB2",
-      baudRate: 115200,
-      autoOpen: true,
-    },
-    (err) => {
-      console.log("Init");
-      if (err) console.log("Error", err, err.message);
+  port.open((error) => {
+    if (error) {
+    
+      console.log('Error', error);
     }
-  );
+
 
     setTimeout(function(){
       port.write('AT+CMGF=1\r')
@@ -81,9 +86,10 @@ async function healthCheck() {
               }, 100);
           }, 100);
        }, 100);
-   }, 5000);
+   }, 100);
 
     
+  });
 
 }
 
@@ -91,6 +97,7 @@ async function healthCheck() {
 const interval = 1000 * 60 * 1;
 
 healthCheck() 
+
 setInterval(() => {
   console.log('Health check ph', process.env.HEALTH_CHECK)
   
