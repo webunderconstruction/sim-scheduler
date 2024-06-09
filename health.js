@@ -79,6 +79,7 @@ async function healthCheck() {
                 console.log('HealthCheck sent');
                 try {
                   port.close();
+                  console.log('Port closed');
                 } catch (error) {
                   console.log('Unable to close port', error);
                 }
@@ -96,10 +97,10 @@ async function healthCheck() {
 // 1mins
 const interval = 1000 * 60 * 1;
 
-healthCheck() 
+
 
 setInterval(() => {
   console.log('Health check ph', process.env.HEALTH_CHECK)
-  
+  healthCheck();
 }, interval);
 
