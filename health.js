@@ -106,7 +106,12 @@ async function healthCheck() {
               setTimeout(function(){
                 port.write('\x1A');
                 console.log('HealthCheck sent');
-                port.close();
+                try {
+                  port.close();
+                } catch (error) {
+                  console.log('Unable to close port', error);
+                }
+                
               }, 100);
           }, 100);
        }, 100);
@@ -138,8 +143,8 @@ async function healthCheck() {
   // }
 }
 
-// 5mins
-const interval = 1000 * 60 * 5;
+// 1mins
+const interval = 1000 * 60 * 1;
 
 setInterval(() => {
   console.log('Health check ph', process.env.HEALTH_CHECK)
