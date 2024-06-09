@@ -3,17 +3,7 @@ require("dotenv").config();
 const { SerialPort, ReadlineParser } = require("serialport");
 
 
-const port = new SerialPort(
-  {
-    path: "/dev/ttyUSB2",
-    baudRate: 115200,
-    autoOpen: false,
-  },
-  (err) => {
-    console.log("Init");
-    if (err) console.log("Error", err, err.message);
-  }
-);
+
 
 function sendCommand(command, returnCheckString = 'OK', endOfLine = '\r') {
   const parser = new ReadlineParser();
@@ -59,43 +49,19 @@ function sendCommand(command, returnCheckString = 'OK', endOfLine = '\r') {
 }
 
 
-//testing
-// async function test() {
-//   console.log("sending async command!");
-
-//   try {
-//     // check if SIM is locked
-//     if (await isSimLocked()) {
-//       console.log('SIM is locked, sending unlock command...');
-//       const unlockSIM = await sendCommand(`AT+CPIN=${process.env.SIM_PIN}`, '+CPIN: READY');
-//       console.log("unlockSIM status", unlockSIM);
-//     }
-
-//     console.log("SIM not locked, continuing...");
-
-//     // check if current phone LT DO matches this week's LT DO
-//     const currentPh = await getCurrentRedirectNumber();
-//     console.log("current phone LT DO", currentPh);
-
-//     if (currentPh !== phoneNumber) {
-//       const setDTOResponse = await sendCommand(
-//         `AT+CCFC=0,3,"${phoneNumber}"\r`
-//       );
-//       console.log("setDTOResponse", setDTOResponse);
-//     }
-//   } catch (error) {
-//     console.log("crap!", error);
-//   }
-// }
-
 async function healthCheck() {
 
-  port.open((error) => {
-    if (error) {
-    
-      console.log('Error', error);
+  const port = new SerialPort(
+    {
+      path: "/dev/ttyUSB2",
+      baudRate: 115200,
+      autoOpen: true,
+    },
+    (err) => {
+      console.log("Init");
+      if (err) console.log("Error", err, err.message);
     }
-
+  );
 
     setTimeout(function(){
       port.write('AT+CMGF=1\r')
@@ -115,32 +81,10 @@ async function healthCheck() {
               }, 100);
           }, 100);
        }, 100);
-   }, 100);
+   }, 5000);
 
     
-  });
 
-  // try {
-
-  //   console.log('Sending health check command');
-
-
-  //   // set sms text mode
-  //   await sendCommand('AT+CMGF=1');
-  //   // set phone number
-  //   const healthResponse = await sendCommand(`AT+CMGS="${process.env.HEALTH_CHECK}"\r\nHealthCheck\0x1a`, 'OK', '');
-  //   // set text
-  //   // await sendCommand('HealthCheck', '', '\r\n');
-  //   // // send sms
-  //   // await sendCommand('\x1A');
-  //   // const healthResponse = await sendCommand('^z')
-  //   console.log("Health response", healthResponse);
-    
-  // } catch (error) {
-
-  //   console.log("crap!", error);
-    
-  // }
 }
 
 // 1mins
@@ -151,7 +95,3 @@ setInterval(() => {
   healthCheck() 
 }, interval);
 
-
-//test();
-
-// startSerialPort();
