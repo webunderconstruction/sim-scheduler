@@ -94,13 +94,20 @@ async function healthCheck() {
 
 }
 
-// 1mins
-const interval = 1000 * 60 * 1;
+// 60mins / 1 hr
+const interval = 1000 * 60 * 60;
 
 
 
 setInterval(() => {
-  console.log('Health check ph', process.env.HEALTH_CHECK)
-  healthCheck();
+  // check if hours in 8am or 8pm
+  const date = new Date();
+  const hours = date.getHours();
+
+  if(hours === 8 || hours === 20) {
+    console.log('Running health check service');
+    healthCheck();
+  }
+
 }, interval);
 
