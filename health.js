@@ -90,8 +90,9 @@ async function healthCheck() {
 // 1mins
 const interval = 1000 * 60 * 1;
 
+healthCheck() 
 setInterval(() => {
   console.log('Health check ph', process.env.HEALTH_CHECK)
-  healthCheck() 
+  
 }, interval);
 
