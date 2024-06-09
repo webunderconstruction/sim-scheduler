@@ -100,9 +100,12 @@ const interval = 1000 * 60 * 60;
 
 
 setInterval(() => {
+  
   // check if hours in 8am or 8pm
   const date = new Date();
   const hours = date.getHours();
+
+  console.log('Health checking service on hour', hours)
 
   if(hours === 8 || hours === 20) {
     console.log('Running health check service');
