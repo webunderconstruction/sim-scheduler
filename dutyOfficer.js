@@ -1,6 +1,6 @@
 const shiftWorkers = require("./brigadeOfficers.json");
 
-function getDutyOfficer(date) {
+function getDutyOfficer(date = new Date()) {
   const startDate = new Date("2024-02-17"); // Start date Saturday
 
   // Calculate the number of weeks passed since the start date
@@ -12,5 +12,7 @@ function getDutyOfficer(date) {
 
   return shiftWorkers[workerIndex];
 }
+
+console.log('Current duty officer is:',getDutyOfficer())
 
 module.exports = { getDutyOfficer };
