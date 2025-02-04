@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const cron = require('node-cron');
 const { SerialPort, ReadlineParser } = require("serialport");
 const { getDutyOfficer } = require("./dutyOfficer");
 
@@ -36,7 +37,7 @@ const port = new SerialPort(
 // }
 
 function sendCommand(command, returnCheckString = 'OK') {
-  const parser = new ReadlineParser();
+  const parser = new ReadlineParser({ delimiter: "\r\n" });
   const dataStream = [];
 
   return new Promise((resolve, reject) => {
@@ -79,7 +80,7 @@ function sendCommand(command, returnCheckString = 'OK') {
 }
 
 const { name, phoneNumber } = getDutyOfficer(new Date());
-console.log("LT DTO", name, phoneNumber);
+console.log("LT DO", name, phoneNumber);
 
 // check SIM unlocked
 
@@ -104,7 +105,7 @@ async function getCurrentRedirectNumber() {
 }
 
 //testing
-async function test() {
+async function main() {
   console.log("sending async command!");
 
   try {
@@ -122,16 +123,20 @@ async function test() {
     console.log("current phone LT DO", currentPh);
 
     if (currentPh !== phoneNumber) {
+      console.log('Phone number does not match, setting new number...');
       const setDTOResponse = await sendCommand(
         `AT+CCFC=0,3,"${phoneNumber}"\r`
       );
-      console.log("setDTOResponse", setDTOResponse);
+      console.log("Set new number response", setDTOResponse);
     }
+
+    console.log('Current phone number matches, exiting...');
   } catch (error) {
     console.log("crap!", error);
   }
 }
 
-test();
-
-// startSerialPort();
+cron.schedule('0 19 * * *', () => {
+  console.log('Running CRON job main(), every day at 19:00');
+  main()
+});
