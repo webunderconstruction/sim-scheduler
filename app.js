@@ -166,6 +166,7 @@ async function checkSMS() {
   if(response !== 'OK') {
     const smsID = getSMSMessageId(response);
     const smsText = await readSMS(smsID);
+    
     if(smsText.trim().toLowerCase() === 'who is') {
 
       const currentPh = await getCurrentRedirectNumber();
