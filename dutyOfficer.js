@@ -18,6 +18,11 @@ function getDutyOfficerByPhoneNumber(phoneNumber) {
   return officer ? officer.name : null;
 }
 
+function getDutyOfficerPhoneNumberByName(name) {
+  const officer = shiftWorkers.find(worker => worker.name === name);
+  return officer ? officer.phoneNumber : null;
+}
+
 console.log('Current duty officer is:',getDutyOfficer())
 
-module.exports = { getDutyOfficer, getDutyOfficerByPhoneNumber };
+module.exports = { getDutyOfficer, getDutyOfficerByPhoneNumber, getDutyOfficerPhoneNumberByName };

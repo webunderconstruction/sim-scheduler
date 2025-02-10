@@ -2,7 +2,7 @@ require("dotenv").config();
 
 const cron = require('node-cron');
 const { SerialPort, ReadlineParser } = require("serialport");
-const { getDutyOfficer, getDutyOfficerByPhoneNumber } = require("./dutyOfficer");
+const { getDutyOfficer, getDutyOfficerByPhoneNumber, getDutyOfficerPhoneNumberByName } = require("./dutyOfficer");
 
 const port = new SerialPort(
   {
@@ -181,7 +181,16 @@ async function checkSMS() {
 
     if(smsText.includes('change to')) {
 
-      // const changeToName = 
+      const changeToName = extractNameFromChangeToCommand(smsText);
+      if(changeToName) {
+        const phoneNumber = getDutyOfficerPhoneNumberByName(changeToName);
+        const setDTOResponse = await sendCommand(
+          `AT+CCFC=0,3,"${phoneNumber}"\r`
+        );
+  
+        sendSMS(process.env.ADMIN_PH, `The redirect LT DO has been updated to ${changeToName}`);
+        console.log("Set new number response", setDTOResponse);
+      }
 
     }
   }
