@@ -13,6 +13,11 @@ function getDutyOfficer(date = new Date()) {
   return shiftWorkers[workerIndex];
 }
 
+function getDutyOfficerByPhoneNumber(phoneNumber) {
+  const officer = shiftWorkers.find(worker => worker.phoneNumber === phoneNumber);
+  return officer ? officer.name : null;
+}
+
 console.log('Current duty officer is:',getDutyOfficer())
 
-module.exports = { getDutyOfficer };
+module.exports = { getDutyOfficer, getDutyOfficerByPhoneNumber };

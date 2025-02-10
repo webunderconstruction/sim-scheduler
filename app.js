@@ -2,7 +2,7 @@ require("dotenv").config();
 
 const cron = require('node-cron');
 const { SerialPort, ReadlineParser } = require("serialport");
-const { getDutyOfficer } = require("./dutyOfficer");
+const { getDutyOfficer, getDutyOfficerByPhoneNumber } = require("./dutyOfficer");
 
 const port = new SerialPort(
   {
@@ -36,7 +36,7 @@ const port = new SerialPort(
 //   });
 // }
 
-function sendCommand(command, returnCheckString = 'OK') {
+function sendCommand(command, streamIndex = 0, returnCheckString = 'OK') {
   const parser = new ReadlineParser({ delimiter: "\r\n" });
   const dataStream = [];
 
@@ -63,24 +63,25 @@ function sendCommand(command, returnCheckString = 'OK') {
           console.log("error trying to close port", error);
         }
 
-        resolve(dataStream[0]);
+        resolve(dataStream[streamIndex]);
       }
     });
 
     //open port
     port.open((error) => {
       if (error) {
-      
         reject(error);
       }
       port.pipe(parser);
-      port.write(`${command}\r`);
+
+      if (Array.isArray(command)) {
+        command.forEach(cmd => port.write(`${cmd}`));
+      } else {
+        port.write(`${command}\r`);
+      }
     });
   });
 }
-
-const { name, phoneNumber } = getDutyOfficer(new Date());
-console.log("LT DO", name, phoneNumber);
 
 // check SIM unlocked
 
@@ -104,8 +105,26 @@ async function getCurrentRedirectNumber() {
   return response ? response.match(/"(.*?)"/)[1] : '';
 }
 
-//testing
+function getSMSMessageId(response) {
+  const match = response.match(/\+CMGL: (\d+),/);
+  return match ? match[1] : null;
+}
+
+function getSMSPhoneNumber(response) {
+  const match = response.match(/\+CMGL: \d+,"REC UNREAD","(\+?\d+)"/);
+  return match ? match[1] : null;
+}
+
+function extractNameFromChangeToCommand(command) {
+  const match = command.match(/change to: (\w+)/);
+  return match ? match[1] : null;
+}
+
+// main function to check SIM and update LT DO
 async function main() {
+  const { name, phoneNumber } = getDutyOfficer(new Date());
+  console.log("LT DO", name, phoneNumber);
+
   console.log("sending async command!");
 
   try {
@@ -127,7 +146,11 @@ async function main() {
       const setDTOResponse = await sendCommand(
         `AT+CCFC=0,3,"${phoneNumber}"\r`
       );
+
+      sendSMS(process.env.ADMIN_PH, `The redirect LT DO has been updated to ${name}`);
       console.log("Set new number response", setDTOResponse);
+
+      return;
     }
 
     console.log('Current phone number matches, exiting...');
@@ -136,7 +159,53 @@ async function main() {
   }
 }
 
+async function checkSMS() {
+  const response = await sendCommand('AT+CMGL="REC UNREAD"', 0);
+  console.log("checkSMS", response);
+
+  if(response !== 'OK') {
+    const smsID = getSMSMessageId(response);
+    const smsText = await readSMS(smsID);
+    if(smsText.trim().toLowerCase() === 'who is') {
+
+      const currentPh = await getCurrentRedirectNumber();
+      const currentName = getDutyOfficerByPhoneNumber(currentPh);
+
+      console.log('Sending sms...')
+
+      const { name } = getDutyOfficer(new Date());
+
+      sendSMS(process.env.ADMIN_PH, `The current redirect LT DO is ${currentName}, the roaster should be ${name}`);
+      
+    }
+
+    if(smsText.includes('change to')) {
+
+      // const changeToName = 
+
+    }
+  }
+}
+
+async function readSMS(id) {
+  const response = await sendCommand(`AT+CMGR=${id}`, 1);
+  console.log("readSMS", response);
+  return response;
+}
+
+async function sendSMS(phoneNumber, message) {
+  const commands = [`AT+CMGS="${phoneNumber}"\r`,`${message}\x1A`];
+  const response = await sendCommand(commands);
+
+  console.log("sendSMS response", response);
+}
+
 cron.schedule('0 19 * * *', () => {
   console.log('Running CRON job main(), every day at 19:00');
   main()
+});
+
+cron.schedule('*/5 * * * *', () => {
+  console.log('Checking for SMS');
+  checkSMS();
 });
