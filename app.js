@@ -3,6 +3,7 @@ require("dotenv").config();
 const cron = require('node-cron');
 const { SerialPort, ReadlineParser } = require("serialport");
 const { getDutyOfficer, getDutyOfficerByPhoneNumber, getDutyOfficerPhoneNumberByName } = require("./dutyOfficer");
+const {stopModem} = require('./stopModem');
 
 const port = new SerialPort(
   {
@@ -36,24 +37,26 @@ const port = new SerialPort(
 //   });
 // }
 
-function sendCommand(command, streamIndex = 0, returnCheckString = 'OK') {
+
+
+function sendCommand(command) {
   const parser = new ReadlineParser({ delimiter: "\r\n" });
-  const dataStream = [];
+  const data = [];
 
   return new Promise((resolve, reject) => {
     // if after 60 seconds we don't get any data more than 1 char, we reject
     const timer = setTimeout(() => {
       port.unpipe(parser);
-      reject("Timeout");
+      reject({success: false, data: null, error: 'timeout'});
     }, 60000);
 
-    parser.on("data", (data) => {
-      console.log("...waiting for delicious data", data.length, data);
-      if (data.length > 1) {
-        dataStream.push(data);
+    parser.on("data", (serialData) => {
+      console.log("data stream...", serialData);
+      if (serialData.length > 1 && serialData !== 'OK') {
+        data.push(serialData);
       }
       // send if first thing that comes back
-      if (data.includes(returnCheckString)) {
+      if (serialData.includes('OK')) {
         port.unpipe(parser);
         clearTimeout(timer);
         console.log("close port!");
@@ -63,14 +66,27 @@ function sendCommand(command, streamIndex = 0, returnCheckString = 'OK') {
           console.log("error trying to close port", error);
         }
 
-        resolve(dataStream[streamIndex]);
+        resolve({success: true, data});
+      }
+
+      if(serialData.includes('ERROR')) {
+        port.unpipe(parser);
+        clearTimeout(timer);
+        console.log("close port! AT error response");
+        try {
+          port.close();
+        } catch (error) {
+          console.log("error trying to close port", error);
+        }
+
+        reject({success: false, data: null});
       }
     });
 
     //open port
     port.open((error) => {
       if (error) {
-        reject(error);
+        reject({success: false, data: null, error});
       }
       port.pipe(parser);
 
@@ -94,13 +110,16 @@ function sendCommand(command, streamIndex = 0, returnCheckString = 'OK') {
 // otherwise exit
 
 async function isSimLocked() {
-  const response = await sendCommand("AT+CPIN?");
-  return response.includes("SIM PIN");
+  const {success, data} = await sendCommand("AT+CPIN?");
+  console.log('isSimLocked', data);
+  
+  return success ? data.includes("SIM PIN") : false;
 }
 
 async function getCurrentRedirectNumber() {
-  const response = await sendCommand("AT+CCFC=0,2");
-  console.log("getCurrentRedirectNumber", response);
+  const {data} = await sendCommand("AT+CCFC=0,2");
+  const [response] = data
+  console.log("getCurrentRedirectNumber", data);
   // use regex to find phone number between quotes and return that string, second element of the array
   return response ? response.match(/"(.*?)"/)[1] : '';
 }
@@ -131,8 +150,8 @@ async function main() {
     // check if SIM is locked
     if (await isSimLocked()) {
       console.log('SIM is locked, sending unlock command...');
-      const unlockSIM = await sendCommand(`AT+CPIN=${process.env.SIM_PIN}`, '+CPIN: READY');
-      console.log("unlockSIM status", unlockSIM);
+      const {data} = await sendCommand(`AT+CPIN=${process.env.SIM_PIN}`);
+      console.log("unlockSIM status", data);
     }
 
     console.log("SIM not locked, continuing...");
@@ -143,11 +162,14 @@ async function main() {
 
     if (currentPh !== phoneNumber) {
       console.log('Phone number does not match, setting new number...');
-      const setDTOResponse = await sendCommand(
-        `AT+CCFC=0,3,"${phoneNumber}"\r`
+      const {success, data} = await sendCommand(
+        `AT+CCFC=0,3,"${phoneNumber}"`
       );
-
-      sendSMS(process.env.ADMIN_PH, `The redirect LT DO has been updated to ${name}`);
+      const [setDTOResponse] = data;
+      const smsMessage = success ? `The redirect LT DO has been updated to ${name}`: 'Error setting new redirect'; 
+      
+      sendSMS(process.env.ADMIN_PH, smsMessage);
+      
       console.log("Set new number response", setDTOResponse);
 
       return;
@@ -156,18 +178,39 @@ async function main() {
     console.log('Current phone number matches, exiting...');
   } catch (error) {
     console.log("crap!", error);
+
+    console.log('Try to reset the modem');
+    stopModem();
+
+
   }
 }
 
 async function checkSMS() {
-  const response = await sendCommand('AT+CMGL="REC UNREAD"', 0);
-  console.log("checkSMS", response);
+  const {data} = await sendCommand('AT+CMGL="REC UNREAD"');
+  // const {data} = await sendCommand('AT+CMGL="ALL"');
+  
+  // console.log("checkSMS", data);
 
-  if(response !== 'OK') {
-    const smsID = getSMSMessageId(response);
-    const smsText = await readSMS(smsID);
+  const smsList = processSMSList(data);
+
+  // return;
+
+  smsList.map(async (sms) => {
+    const {meta, message} = sms;
+
+    console.log('sms:', message)
+
+    if(!message) {
+      console.log('sms blank, skipping...');
+
+      return;
+    }
+
     
-    if(smsText.trim().toLowerCase() === 'who is') {
+    if(message.trim().toLowerCase() === 'who is') {
+
+      console.log('Processing who is command...')
 
       const currentPh = await getCurrentRedirectNumber();
       const currentName = getDutyOfficerByPhoneNumber(currentPh);
@@ -176,38 +219,60 @@ async function checkSMS() {
 
       const { name } = getDutyOfficer(new Date());
 
-      sendSMS(process.env.ADMIN_PH, `The current redirect LT DO is ${currentName}, the roaster should be ${name}`);
+      // sendSMS(process.env.ADMIN_PH, `The current redirect LT DO is ${currentName}, the roaster should be ${name}`);
       
     }
 
-    if(smsText.includes('change to')) {
+    if(message.includes('change to')) {
 
-      const changeToName = extractNameFromChangeToCommand(smsText);
+      console.log('Processing change to command...')
+
+      const changeToName = extractNameFromChangeToCommand(message);
       if(changeToName) {
         const phoneNumber = getDutyOfficerPhoneNumberByName(changeToName);
-        const setDTOResponse = await sendCommand(
-          `AT+CCFC=0,3,"${phoneNumber}"\r`
+        const {success, data} = await sendCommand(
+          `AT+CCFC=0,3,"${phoneNumber}"`
         );
   
-        sendSMS(process.env.ADMIN_PH, `The redirect LT DO has been updated to ${changeToName}`);
-        console.log("Set new number response", setDTOResponse);
+        // sendSMS(process.env.ADMIN_PH, `The redirect LT DO has been updated to ${changeToName}`);
+        console.log("Set new number response", data);
       }
 
     }
-  }
+
+  })
+  
 }
 
 async function readSMS(id) {
-  const response = await sendCommand(`AT+CMGR=${id}`, 1);
+  const {data} = await sendCommand(`AT+CMGR=${id}`);
   console.log("readSMS", response);
-  return response;
+  return data[0];
 }
 
 async function sendSMS(phoneNumber, message) {
   const commands = [`AT+CMGS="${phoneNumber}"\r`,`${message}\x1A`];
-  const response = await sendCommand(commands);
+  const {data} = await sendCommand(commands);
 
-  console.log("sendSMS response", response);
+  console.log("sendSMS response", data);
+}
+
+function processSMSList(smsList) {
+  const processedSMS = [];
+  for (let index = 0; index < smsList.length; index++) {
+    const element = smsList[index];
+
+    if(index % 2) {
+      processedSMS[index] = {...processedSMS[index], message: element }
+    } else {
+      processedSMS[index] = {...processedSMS[index], meta: element }
+    }
+    // index % 2 ? processedSMS[index] : {meta: element} : console.log('second', element)
+    
+    
+  }
+
+  return processedSMS;
 }
 
 cron.schedule('0 19 * * *', () => {
@@ -219,3 +284,7 @@ cron.schedule('*/5 * * * *', () => {
   console.log('Checking for SMS');
   checkSMS();
 });
+
+// checkSMS();
+
+// main();
