@@ -18,7 +18,7 @@ app.post('/api/at-command', (req, res) => {
     return res.status(400).json({ success: false, message: 'Command is required' });
   }
 
-  const scriptPath = `${__dirname}/../scripts/send_at_minicom.sh`;
+  const scriptPath = `${__dirname}/../scripts/send_at.sh`;
   exec(`${scriptPath} "${command}"`, (error, stdout, stderr) => {
     if (error) {
       console.error(`Error executing command: ${error}`);
