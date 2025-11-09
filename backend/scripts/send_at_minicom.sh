@@ -2,7 +2,7 @@
 # Usage: ./send_at_minicom.sh "AT+CSQ"
 
 AT_COMMAND="$1"
-SERIAL_PORT="/dev/ttyUSB0" # Change to your actual serial device
+SERIAL_PORT="/dev/ttyUSB2" # Change to your actual serial device
 MINICOM_LOG="/tmp/minicom_at.log"
 
 # Remove previous log
