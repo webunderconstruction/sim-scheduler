@@ -36,6 +36,6 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'Backend is working!' });
 });
 
-app.listen(port, () => {
+app.listen(3000, '0.0.0.0', () => {
   console.log(`Server running at http://localhost:${port}`);
 });
