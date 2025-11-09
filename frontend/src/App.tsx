@@ -12,7 +12,7 @@ function App() {
     
     try {
       // build API url using the origin the app is currently served from
-      const apiUrl = new URL('/api/at-command', window.location.origin).toString()
+      const apiUrl = new URL('/api/at-command', `${(window.location.origin).toString()}:3000`)
 
       const res = await fetch(apiUrl, {
         method: 'POST',
