@@ -1,0 +1,68 @@
+#root {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.command-form {
+  width: 100%;
+}
+
+.input-group {
+  display: flex;
+  gap: 1rem;
+}
+
+input {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  background-color: #646cff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.response {
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.response.success {
+  background-color: #e6ffe6;
+  border: 1px solid #00cc00;
+}
+
+.response.error {
+  background-color: #ffe6e6;
+  border: 1px solid #cc0000;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: #f5f5f5;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+}
