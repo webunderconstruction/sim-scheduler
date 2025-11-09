@@ -11,14 +11,17 @@ function App() {
     setLoading(true)
     
     try {
-      const res = await fetch('http://localhost:3000/api/at-command', {
+      // build API url using the origin the app is currently served from
+      const apiUrl = new URL('/api/at-command', window.location.origin).toString()
+
+      const res = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ command }),
       })
-      
+
       const data = await res.json()
       setResponse(data)
     } catch (error) {
