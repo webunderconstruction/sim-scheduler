@@ -1,13 +1,19 @@
 {
   "name": "sim-scheduler",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "2.0.0",
+  "description": "Automated duty officer rotation and SMS forwarding system for serial AT command devices",
+  "main": "src/index.js",
   "scripts": {
-    "start": "pm2 start app.js",
+    "start": "node src/index.js",
+    "dev": "NODE_ENV=development node src/index.js",
+    "cli": "node src/cli.js",
+    "pm2:start": "pm2 start src/index.js --name sim-scheduler",
+    "pm2:stop": "pm2 stop sim-scheduler",
+    "pm2:restart": "pm2 restart sim-scheduler",
+    "pm2:logs": "pm2 logs sim-scheduler",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["serial", "at-commands", "duty-officer", "sms", "automation"],
   "author": "Matt Todd",
   "license": "ISC",
   "dependencies": {
