@@ -149,7 +149,7 @@ class SMSService {
    * @returns {Promise<boolean>} True if successful
    */
   async forwardSMS(originalSender, message, forwardTo) {
-    const forwardedMessage = `Forwarded from ${originalSender}:\n${message}`;
+    const forwardedMessage = `Forwarded SMS from ${originalSender}:\n${message}`;
     logger.info('Forwarding SMS', { from: originalSender, to: forwardTo });
     return this.sendSMS(forwardTo, forwardedMessage);
   }

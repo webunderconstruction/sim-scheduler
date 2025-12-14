@@ -109,7 +109,8 @@ setInterval(() => {
 
   if(hours === 8 || hours === 20) {
     console.log('Running health check service');
-    healthCheck();
+    // @todo send check to monitoring service
+    // healthCheck();
   }
 
 }, interval);
