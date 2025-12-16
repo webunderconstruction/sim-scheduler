@@ -26,7 +26,7 @@ class SMSService {
 
       // AT commands for sending SMS
       const commands = [
-        `AT+CMGS="${phoneNumber}"\r`,
+        `\x1BAT+CMGS="${phoneNumber}"\r`,
         `${message}\x1A` // Ctrl+Z to send
       ];
 
