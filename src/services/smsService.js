@@ -75,25 +75,51 @@ class SMSService {
    */
   parseSMSList(rawData) {
     const smsList = [];
+    let currentSms = null;
 
-    // SMS responses come in pairs: metadata line, then message line
-    for (let i = 0; i < rawData.length; i += 2) {
-      const metaLine = rawData[i];
-      const messageLine = rawData[i + 1];
+    for (const line of rawData) {
+      if (!line) continue;
+      const trimmedLine = line.trim();
+      if (!trimmedLine) continue;
 
-      if (!metaLine || !messageLine) continue;
+      // Check if this is a metadata line
+      const metaMatch = trimmedLine.match(/^\+CMGL: (\d+),"[^"]*","([^"]+)"/);
 
-      // Parse metadata: +CMGL: <index>,"<status>","<sender>",,"<timestamp>"
-      const meta = this.parseSMSMeta(metaLine);
-      
-      if (meta) {
-        smsList.push({
-          id: meta.id,
-          sender: meta.sender,
-          timestamp: meta.timestamp,
-          message: messageLine.trim(),
-        });
+      if (metaMatch) {
+        // Save previous SMS if exists
+        if (currentSms) {
+          smsList.push(currentSms);
+        }
+
+        // Start new SMS
+        currentSms = {
+          id: metaMatch[1],
+          sender: metaMatch[2],
+          timestamp: new Date(), // Could parse timestamp from response if needed
+          message: ''
+        };
+      } else if (currentSms) {
+        // This is a message content line
+        
+        // Filter out AT command echoes
+        // If the line looks like an AT command echoed back, ignore it
+        if (trimmedLine.toUpperCase().startsWith('AT+')) {
+          logger.debug('Ignoring AT command echo in SMS body', { line: sanitizeForLog(trimmedLine) });
+          continue;
+        }
+
+        // Append to current message
+        if (currentSms.message) {
+          currentSms.message += '\n' + trimmedLine;
+        } else {
+          currentSms.message = trimmedLine;
+        }
       }
+    }
+
+    // Push the last SMS if exists
+    if (currentSms) {
+      smsList.push(currentSms);
     }
 
     return smsList;
@@ -105,18 +131,18 @@ class SMSService {
    * @returns {Object|null} Parsed metadata or null
    */
   parseSMSMeta(metaLine) {
-    // Example: +CMGL: 1,"REC UNREAD","+1234567890",,"2025/01/21,18:05:00+00"
+    // Kept for backward compatibility or potential reuse, 
+    // though the logic is now integrated into parseSMSList
     const match = metaLine.match(/\+CMGL: (\d+),"[^"]*","([^"]+)"/);
     
     if (!match) {
-      logger.warn('Failed to parse SMS metadata', { line: sanitizeForLog(metaLine) });
       return null;
     }
 
     return {
       id: match[1],
       sender: match[2],
-      timestamp: new Date(), // Could parse timestamp from response if needed
+      timestamp: new Date(),
     };
   }
 
