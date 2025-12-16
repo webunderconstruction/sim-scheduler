@@ -5,6 +5,7 @@ console.log('=== Testing Duty Officer Rotation at Sunday 10am ===\n');
 
 // Test cases
 const testCases = [
+  { desc: 'NOW', date: new Date() },
   { desc: 'Sunday 9:59am (before rotation)', date: new Date('2025-01-19T09:59:00') },
   { desc: 'Sunday 10:00am (rotation time)', date: new Date('2025-01-19T10:00:00') },
   { desc: 'Sunday 10:01am (after rotation)', date: new Date('2025-01-19T10:01:00') },
