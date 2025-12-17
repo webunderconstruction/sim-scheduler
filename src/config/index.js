@@ -62,14 +62,18 @@ const config = {
   // Phone Numbers
   phone: {
     admin: getEnvVar('ADMIN_PH'),
-    healthCheck: getEnvVar('HEALTH_CHECK_PH', getEnvVar('ADMIN_PH')),
   },
 
   // Scheduling (cron expressions)
   schedule: {
     dutyUpdate: getEnvVar('DUTY_UPDATE_CRON', '0 10 * * 7'), // 10am Sunday
     smsCheck: getEnvVar('SMS_CHECK_CRON', '*/5 * * * *'),    // Every 5 minutes
-    healthCheck: getEnvVar('HEALTH_CHECK_CRON', '0 8,20 * * *'), // 8 AM and 8 PM
+    heartbeat: getEnvVar('HEARTBEAT_CRON', '*/5 * * * *'),   // Every 5 minutes
+  },
+
+  // Health Monitoring
+  healthCheck: {
+    url: getEnvVar('HEALTH_CHECK_URL', null),
   },
 
   // Dev Mode / Remote Tunnel
@@ -98,10 +102,6 @@ function validateConfig() {
   
   if (!phoneRegex.test(config.phone.admin)) {
     throw new Error(`Invalid admin phone number format: ${config.phone.admin}`);
-  }
-  
-  if (!phoneRegex.test(config.phone.healthCheck)) {
-    throw new Error(`Invalid health check phone number format: ${config.phone.healthCheck}`);
   }
 
   // Validate SIM PIN (should be 4-8 digits)

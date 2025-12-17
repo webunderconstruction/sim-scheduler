@@ -68,35 +68,36 @@ function scheduleCronJobs() {
   });
   logger.info('Scheduled SMS monitoring', { cron: config.schedule.smsCheck });
 
-  // Health check job (sends SMS to admin)
-  cron.schedule(config.schedule.healthCheck, async () => {
-    try {
-      await sendHealthCheck();
-    } catch (error) {
-      logger.error('Health check job error', { error: error.message });
-    }
-  });
-  logger.info('Scheduled health check', { cron: config.schedule.healthCheck });
+  // Heartbeat Monitoring (Healthchecks.io)
+  if (config.healthCheck.url) {
+    cron.schedule(config.schedule.heartbeat, async () => {
+      try {
+        await sendHeartbeat();
+      } catch (error) {
+        logger.error('Heartbeat job error', { error: error.message });
+      }
+    });
+    logger.info('Scheduled heartbeat monitoring', { cron: config.schedule.heartbeat });
+  }
 
   logger.info('All cron jobs scheduled successfully');
 }
 
 /**
- * Send health check SMS
+ * Send heartbeat to monitoring service
  */
-async function sendHealthCheck() {
-  logger.info('=== Starting Health Check ===');
-  
-  const { getSMSService } = require('./services/smsService');
-  const smsService = getSMSService();
+async function sendHeartbeat() {
+  const url = config.healthCheck.url;
+  if (!url) return;
 
-  const message = `Sim-Scheduler Health Check - ${new Date().toLocaleString()}`;
-  const success = await smsService.sendSMS(config.phone.healthCheck, message);
-
-  if (success) {
-    logger.info('Health check SMS sent successfully');
-  } else {
-    logger.error('Failed to send health check SMS');
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    logger.debug('Heartbeat sent successfully');
+  } catch (error) {
+    logger.error('Failed to send heartbeat', { url, error: error.message });
   }
 }
 
