@@ -93,7 +93,12 @@ async function sendHeartbeat() {
   const https = require('https');
 
   return new Promise((resolve, reject) => {
-    const req = https.get(url, (res) => {
+    const options = {
+      family: 4, // Force IPv4 to avoid Happy Eyeballs timeouts on some networks
+      timeout: 10000, // 10s timeout
+    };
+
+    const req = https.get(url, options, (res) => {
       if (res.statusCode >= 200 && res.statusCode < 300) {
         logger.debug('Heartbeat sent successfully');
         resolve();
@@ -101,6 +106,11 @@ async function sendHeartbeat() {
         logger.error(`Heartbeat failed with status: ${res.statusCode}`);
         reject(new Error(`Status ${res.statusCode}`));
       }
+    });
+
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('Request timed out'));
     });
 
     req.on('error', (error) => {
