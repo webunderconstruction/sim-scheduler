@@ -128,8 +128,21 @@ class SerialService {
         logger.debug('Connected to remote tunnel', { host: config.remote.host, port: config.remote.port });
 
         // Send command
-        const cmdStr = Array.isArray(command) ? command.join('') : `${command}\r`;
-        client.write(cmdStr);
+        if (Array.isArray(command)) {
+          // Send commands sequentially with delay to ensure modem processes prompt
+          const sendSequence = async () => {
+            for (const cmd of command) {
+              client.write(cmd);
+              // Wait for 250ms between commands to let modem switch modes (e.g. for > prompt)
+              await new Promise(resolve => setTimeout(resolve, 250));
+            }
+          };
+          sendSequence().catch(err => {
+             logger.error('Error during sequence send', { error: err.message });
+          });
+        } else {
+          client.write(`${command}\r`);
+        }
       });
 
       client.on('data', (chunk) => {
