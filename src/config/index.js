@@ -67,7 +67,7 @@ const config = {
 
   // Scheduling (cron expressions)
   schedule: {
-    dutyUpdate: getEnvVar('DUTY_UPDATE_CRON', '0 19 * * *'), // 7 PM daily
+    dutyUpdate: getEnvVar('DUTY_UPDATE_CRON', '0 10 * * 7'), // 10am Sunday
     smsCheck: getEnvVar('SMS_CHECK_CRON', '*/5 * * * *'),    // Every 5 minutes
     healthCheck: getEnvVar('HEALTH_CHECK_CRON', '0 8,20 * * *'), // 8 AM and 8 PM
   },
