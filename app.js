@@ -288,3 +288,5 @@ cron.schedule('*/5 * * * *', () => {
 // checkSMS();
 
 // main();
+
+export { sendSMS };
