@@ -25,10 +25,12 @@ class SMSService {
       logger.info('Sending SMS', { phoneNumber, messageLength: message.length });
 
       // AT commands for sending SMS
-      const commands = [
-        `\x1BAT+CMGS="${phoneNumber}"\r`,
-        `${message}\x1A` // Ctrl+Z to send
-      ];
+      // const commands = [
+      //   `\x1BAT+CMGS="${phoneNumber}"\r`,
+      //   `${message}\x1A` // Ctrl+Z to send
+      // ];
+
+      const commands = [`AT+CMGS="${phoneNumber}"\r`,`${message}\x1A`];
 
       const { success, data } = await this.serialService.sendCommand(commands);
 
