@@ -90,15 +90,26 @@ async function sendHeartbeat() {
   const url = config.healthCheck.url;
   if (!url) return;
 
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    logger.debug('Heartbeat sent successfully');
-  } catch (error) {
-    logger.error('Failed to send heartbeat', { url, error: error.message });
-  }
+  const https = require('https');
+
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, (res) => {
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        logger.debug('Heartbeat sent successfully');
+        resolve();
+      } else {
+        logger.error(`Heartbeat failed with status: ${res.statusCode}`);
+        reject(new Error(`Status ${res.statusCode}`));
+      }
+    });
+
+    req.on('error', (error) => {
+      logger.error('Failed to send heartbeat', { url, error: error.message, code: error.code });
+      reject(error);
+    });
+
+    req.end();
+  });
 }
 
 /**
