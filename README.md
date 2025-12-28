@@ -66,11 +66,20 @@ src/
    nano brigadeOfficers.json
    ```
 
-6. Start with PM2:
+6. Start with PM2 and configure auto-startup:
    ```bash
+   # Start the application
    npm run pm2:start
-   pm2 save
+   
+   # Generate startup script
    pm2 startup
+   ```
+   
+   **IMPORTANT**: Run the command output by the `pm2 startup` step above. It will look something like `sudo env PATH=$PATH...`.
+   
+   Then freeze the process list:
+   ```bash
+   pm2 save
    ```
 
 ### On Development Machine (Mac/Linux)
