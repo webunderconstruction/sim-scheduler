@@ -52,8 +52,8 @@ function loadOfficers() {
 function getDutyOfficer(date = new Date()) {
   const officers = loadOfficers();
   
-  // Start date for rotation (Sunday, November 30, 2025 at 10:00 AM)
-  const startDate = new Date('2025-11-30T10:00:00');
+  // Start date for rotation (Sunday, November 23, 2025 at 10:00 AM)
+  const startDate = new Date('2025-11-23T10:00:00');
 
   // Find the most recent Sunday 10am at or before the current date
   // This ensures the rotation changes exactly at Sunday 10am
